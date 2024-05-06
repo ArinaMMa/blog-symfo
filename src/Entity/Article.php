@@ -41,10 +41,10 @@ class Article
 
     #[ORM\Column]
     #[Assert\NotBlank]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private ?DateTimeImmutable $updatedAt = null;
 
     public function getId(): ?int
     {
