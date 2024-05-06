@@ -23,6 +23,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         max: 180,
         maxMessage: 'L\'email ne peut pas faire plus de {{ limit }} caractères'
     )]
+    #[Assert\Email]
     private ?string $email = null;
 
     /**
@@ -54,6 +55,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __toString(): string {
+        return "$this->firstName $this->lastName";
+    }
+
+    public function fullName(): string {
+        return "$this->firstName $this->lastName";
     }
 
     public function getEmail(): ?string
