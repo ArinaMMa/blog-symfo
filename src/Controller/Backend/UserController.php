@@ -5,7 +5,6 @@ namespace App\Controller\Backend;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -51,5 +50,22 @@ class UserController extends AbstractController
             'form' => $form,
         ]);
 
+    }
+
+    #[Route('/{id}/delete', name:'.delete', methods: ['POST'])]
+    public function delete(?User $user, Request $request): RedirectResponse {
+        if(!$user) {
+            $this->addFlash('error', 'L\'utilisateur n\'existe pas');
+            return $this->redirectToRoute('admin.users.index');
+        }
+        if($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('token'))) {
+            $this->em->remove($user);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Utilisateur supprimé');
+        } else {
+            $this->addFlash('error', 'Le token csrf n\'est pas valide');
+        }
+        return $this->redirectToRoute('admin.users.index');
     }
 }
