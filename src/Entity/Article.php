@@ -13,6 +13,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQUE_TITLE_ARTICLE', fields:['title'])]
 #[UniqueEntity(fields: ['title'], message:'Le titre est déjà utilisé par un autre article.')]
+#[ORM\HasLifecycleCallbacks]
 class Article
 {
     #[ORM\Id]
@@ -40,7 +41,6 @@ class Article
     private ?bool $enable = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank]
     private ?DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]

@@ -92,6 +92,7 @@ class UserType extends AbstractType
             'data_class' => User::class,
             'method' => 'GET',
             'isAdmin' => false,
+            'sanitize_html' => true,
         ]);
     }
 }
