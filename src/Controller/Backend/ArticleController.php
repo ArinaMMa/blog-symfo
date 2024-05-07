@@ -7,6 +7,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,6 +23,34 @@ class ArticleController extends AbstractController
     public function index(ArticleRepository $articleRepo): Response {
         return $this->render('Backend/Articles/index.html.twig', [
             'articles' => $articleRepo->findAll(),
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: '.update', methods: ['GET', 'POST'])]
+    public function update(?Article $article, Request $request): Response|RedirectResponse {
+        // dd('test');
+        //art existe ? --> message error + redirect
+        if(!$article) {
+            $this->addFlash('error', "L'article n'existe pas dans la base de données.");
+            return $this->redirectToRoute('admin.articles.index');
+        }
+
+        //créer le form de update et récupérer la request
+        $form = $this->createForm(ArticleType::class, $article);
+        $form->handleRequest($request);
+
+        //si form soumis et validé, persistence BDD des données + redirection
+        if($form->isSubmitted() && $form->isValid()) {
+            $this->em->persist($article);
+            $this->em->flush();
+
+            $this->addFlash('success', "L'article a été modifié avec succès.");
+            return $this->redirectToRoute('admin.articles.index');
+        }
+
+        //afficher le form dans le twig
+        return $this->render('Backend/Articles/update.html.twig', [
+            'form' => $form,
         ]);
     }
 
@@ -45,5 +74,22 @@ class ArticleController extends AbstractController
         return $this->render('Backend/Articles/create.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
+    public function delete(?Article $article, Request $request): RedirectResponse {
+        if(!$article) {
+            $this->addFlash('error', 'L\'article n\'existe pas');
+            return $this->redirectToRoute('admin.articles.index');
+        }
+        if($this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('token'))) {
+            $this->em->remove($article);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Article supprimé');
+        } else {
+            $this->addFlash('error', 'Le token csrf n\'est pas valide');
+        }
+        return $this->redirectToRoute('admin.articles.index');
     }
 }
