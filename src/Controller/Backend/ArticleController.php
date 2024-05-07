@@ -28,7 +28,6 @@ class ArticleController extends AbstractController
 
     #[Route('/{id}/edit', name: '.update', methods: ['GET', 'POST'])]
     public function update(?Article $article, Request $request): Response|RedirectResponse {
-        // dd('test');
         //art existe ? --> message error + redirect
         if(!$article) {
             $this->addFlash('error', "L'article n'existe pas dans la base de données.");
@@ -36,7 +35,7 @@ class ArticleController extends AbstractController
         }
 
         //créer le form de update et récupérer la request
-        $form = $this->createForm(ArticleType::class, $article);
+        $form = $this->createForm(ArticleType::class, $article, ['isEdit' => true]);
         $form->handleRequest($request);
 
         //si form soumis et validé, persistence BDD des données + redirection
@@ -64,6 +63,10 @@ class ArticleController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getUser();
+
+            $article->setUser($user);
+
             $this->em->persist($article);
             $this->em->flush();
 
