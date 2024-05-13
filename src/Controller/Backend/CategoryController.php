@@ -21,12 +21,12 @@ class CategoryController extends AbstractController {
     #[Route('', name: '.index', methods: ['GET'])]
     public function index(CategoryRepository $categoryRepo): Response {
         return $this->render('Backend/Categories/index.html.twig', [
-            'categories' => $categoryRepo->findAll(),
+            'categories' => $categoryRepo->findAllOrderByName(),
         ]);
     }
 
     //Modifier une catégorie
-    #[Route('/update', name: '.update', methods:['GET', 'POST'])]
+    #[Route('/{id}/edit', name: '.update', methods:['GET', 'POST'])]
     public function update(?Category $category, Request $request) : Response|RedirectResponse {
         //catégory existe ? --> message error et redirect
         if(!$category) {
@@ -34,10 +34,21 @@ class CategoryController extends AbstractController {
             return $this->redirectToRoute('admin.categories.index');
         }
         //créer form de update et récupérer request
-        
-        //si form soumis et validé, persist BDD + redirect
+        $form = $this->createForm(CategoryType::class, $category, ['isEdit' => true]);
+        $form->handleRequest($request);
 
-        //afficher form dasn twig
+        //si form soumis et validé, persist BDD + redirect
+        if($form->isSubmitted() && $form->isValid()) {
+            $this->em->persist($category);
+            $this->em->flush();
+
+            $this->addFlash('success', "La catégorie a été modifiée avec succès.");
+            return $this->redirectToRoute('admin.categories.index');
+        }
+        //afficher form dans twig
+        return $this->render('Backend/Categories/update.html.twig', [
+            'form' => $form,
+        ]);
     }
 
     //Créer une nouvelle catégorie
