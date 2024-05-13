@@ -7,6 +7,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -95,4 +96,28 @@ class ArticleController extends AbstractController
         }
         return $this->redirectToRoute('admin.articles.index');
     }
+
+    #[Route('/{id}/switch', name: '.switch', methods: ['GET'])]
+    public function switch(?Article $article): JsonResponse {
+        
+        if(!$article) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Article inexistant',
+            ], 404);
+        }
+
+        $article->setEnable(!$article->isEnable());
+
+        $this->em->persist($article);
+        $this->em->flush();
+        
+        return new JsonResponse([
+            'status' => 'ok',
+            'message' => 'visibility change',
+            'enable' => $article->isEnable(),
+        ]);
+    }
+
+
 }
