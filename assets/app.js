@@ -8,5 +8,6 @@
 import './styles/app.scss';
 
 import './js/switchArticle';
+import './js/switchCategory';
 
 require('bootstrap');

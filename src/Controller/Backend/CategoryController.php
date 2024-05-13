@@ -7,6 +7,7 @@ use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -70,5 +71,45 @@ class CategoryController extends AbstractController {
             'form' => $form,
         ]);
     }
+
+    #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
+    public function delete(?Category $category, Request $request): RedirectResponse {
+        if(!$category) {
+            $this->addFlash('error', 'La catégorie n\'existe pas');
+            return $this->redirectToRoute('admin.categories.index');
+        }
+        if($this->isCsrfTokenValid('delete' . $category->getId(), $request->request->get('token'))) {
+            $this->em->remove($category);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Catégorie supprimée');
+        } else {
+            $this->addFlash('error', 'Le token csrf n\'est pas valide');
+        }
+        return $this->redirectToRoute('admin.categories.index');
+    
+    }
+
+    #[Route ('/{id}/switch', name: '.switch', methods: ['GET'])]
+    public function switch (?Category $category): JsonResponse {
+        if(!$category) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Catégorie inexistante',
+            ], 404);
+        }
+
+        $category->setEnable(!$category->isEnable());
+
+        $this->em->persist($category);
+        $this->em->flush();
+
+        return new JsonResponse([
+            'status' => 'ok',
+            'message' => 'visibility change',
+            'enable' => $category->isEnable(),
+        ]);
+    }
+
 
 }
