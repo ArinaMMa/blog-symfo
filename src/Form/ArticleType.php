@@ -3,7 +3,10 @@
 namespace App\Form;
 
 use App\Entity\Article;
+use App\Entity\Category;
 use App\Entity\User;
+use App\Repository\CategoryRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -22,6 +25,21 @@ class ArticleType extends AbstractType
                 'attr' => [
                     'placeholder' => 'Titre de votre article',
                 ],
+            ])
+            ->add('categories', EntityType::class, [
+                'class' => Category::class,
+                'choice_label' => 'name',
+                'expanded' => false,
+                'multiple' => true,
+                'by_reference' => false,
+                'query_builder' => function (CategoryRepository $repo): QueryBuilder {
+                    return $repo->createQueryBuilder('c')
+                    ->andWhere('c.enable = :enable')
+                    ->setParameter('enable', true)
+                    ->orderBy('c.name', 'ASC')
+                    ;
+                },
+
             ]);
 
             if($options['isEdit']) {

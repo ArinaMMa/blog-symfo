@@ -1,4 +1,5 @@
-// import './bootstrap.js';
+import './bootstrap.js';
+// 
 /*
  * Welcome to your app's main JavaScript file!
  *
@@ -9,5 +10,6 @@ import './styles/app.scss';
 
 import './js/switchArticle';
 import './js/switchCategory';
+import './js/Utils/sendVisibilityRequest';
 
 require('bootstrap');
