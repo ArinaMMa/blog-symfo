@@ -1,0 +1,28 @@
+.banner {
+    @include flexbox;
+    background: center / cover url('/assets/images/banner-formations.jpg');
+    height: 70vh;
+
+    &-::after {
+        content: "";
+        background: rgba(49, 49, 49, 0.2);
+        position: absolute;
+        top:0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    &-header {
+        position: relative;
+        z-index: 2;
+        border-radius: $border-radius;
+        border: 1px solid $gray-600;
+        background: #1b2731b9;
+        padding: 0.5em 1em;
+
+        &-title {
+            color: $white;
+        }
+    }
+}

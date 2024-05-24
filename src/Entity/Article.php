@@ -2,21 +2,24 @@
 
 namespace App\Entity;
 
-use App\Entity\Traits\DateTimeTrait;
-use App\Entity\Traits\EnableTrait;
-use App\Repository\ArticleRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Traits\EnableTrait;
+use App\Entity\Traits\DateTimeTrait;
+use App\Repository\ArticleRepository;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\ArrayCollection;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQUE_TITLE_ARTICLE', fields:['title'])]
 #[UniqueEntity(fields: ['title'], message:'Le titre est déjà utilisé par un autre article.')]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class Article
 {
     use EnableTrait,
@@ -46,6 +49,14 @@ class Article
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+
+    // NOTE: This is not a mapped field of entity metadata, just a simple property.
+    #[Vich\UploadableField(mapping: 'articles', fileNameProperty: 'imageName')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $imageName = null;
+
     /**
      * @var Collection<int, Category>
      */
@@ -56,6 +67,39 @@ class Article
     {
         $this->categories = new ArrayCollection();
     }
+    
+    public function __serialize(): array
+    {
+        return [
+            $this->id,
+            $this->title,
+            $this->slug,
+            $this->content,
+            $this->user,
+            $this->categories,
+            $this->imageName,
+            $this->createdAt,
+            $this->updatedAt,
+            $this->enable,
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [
+            $this->id,
+            $this->title,
+            $this->slug,
+            $this->content,
+            $this->user,
+            $this->categories,
+            $this->imageName,
+            $this->createdAt,
+            $this->updatedAt,
+            $this->enable,
+        ] = $data;
+    }
+
 
     public function getId(): ?int
     {
@@ -135,6 +179,42 @@ class Article
         }
 
         return $this;
+    }
+
+    /**
+     * If manually uploading a file (i.e. not using Symfony Form) ensure an instance
+     * of 'UploadedFile' is injected into this setter to trigger the update. If this
+     * bundle's configuration parameter 'inject_on_load' is set to 'true' this setter
+     * must be able to accept an instance of 'File' as the bundle will inject one here
+     * during Doctrine hydration.
+     *
+     * @param File|\Symfony\Component\HttpFoundation\File\UploadedFile|null $imageFile
+     */
+    public function setImageFile(?File $imageFile = null): self
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageName(?string $imageName): void
+    {
+        $this->imageName = $imageName;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
     }
 
 }
