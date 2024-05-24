@@ -67,6 +67,39 @@ class Article
     {
         $this->categories = new ArrayCollection();
     }
+    
+    public function __serialize(): array
+    {
+        return [
+            $this->id,
+            $this->title,
+            $this->slug,
+            $this->content,
+            $this->user,
+            $this->categories,
+            $this->imageName,
+            $this->createdAt,
+            $this->updatedAt,
+            $this->enable,
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [
+            $this->id,
+            $this->title,
+            $this->slug,
+            $this->content,
+            $this->user,
+            $this->categories,
+            $this->imageName,
+            $this->createdAt,
+            $this->updatedAt,
+            $this->enable,
+        ] = $data;
+    }
+
 
     public function getId(): ?int
     {
@@ -157,7 +190,7 @@ class Article
      *
      * @param File|\Symfony\Component\HttpFoundation\File\UploadedFile|null $imageFile
      */
-    public function setImageFile(?File $imageFile = null): void
+    public function setImageFile(?File $imageFile = null): self
     {
         $this->imageFile = $imageFile;
 
@@ -166,6 +199,7 @@ class Article
             // otherwise the event listeners won't be called and the file is lost
             $this->updatedAt = new \DateTimeImmutable();
         }
+        return $this;
     }
 
     public function getImageFile(): ?File
